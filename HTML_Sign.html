@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+	<title>NetBware - 그룹웨어</title>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+	<script type="text/javascript" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.min.js"></script>
+
+		<style>
+			table {
+				
+				
+				width : 750px;
+				border-top: 5px solid #47a1e5;
+				border-collapse: collapse;
+				
+				padding : 10px;
+			}
+
+			th, td {
+				border-bottom: 1px solid #47a1e5;
+				padding: 10px;
+			}
+			
+
+			#first {
+				
+				font-size: 15px;
+				font-weight: bolder;
+				float: left;
+			}
+
+			#second {
+				
+				font-size: 15px;
+				
+				color: gray;
+				
+			}
+
+			#id_head {
+			
+				margin-top: 100px;
+				color: #47a1e5;
+				font-size: 30px;
+			}
+			#canvas{
+				margin-left : 600px;
+				margin-top : 20px;
+			}
+		</style>
+		
+		
+</head>
+<body>
+	
+	<div id="table">
+		<h3 id="id_head">개인정보</h3>
+		<div id="first"> 개인정보 조회/수정</div>
+		<div id="second"> (개인정보를 조회/수정합니다)</div>
+		<table> 
+		<tr> 
+			<td> <b> 이름</b> </td> <td> 홍길동</td> 
+		</tr> 
+		<tr> 
+			<td> <b> 사번</b> </td> <td> E12345678</td> 
+		</tr> 
+		<tr> 
+			<td> <b> 소속부서</b> </td> <td> 인사과</td> 
+		</tr> 
+		<tr> 
+			<td> <b> 직책</b> </td> <td> 사원</td> </tr> 
+		<tr> 
+			<td> <b> 보안등급</b> </td> <td> 사용자</td> 
+		</tr> 
+		<tr> 
+			<td> <b> E-Mail</b> </td> <td> HGD@xxxx.co.kr</td> 
+		</tr> 
+		<tr> 
+			<td> <b> 주소</b> </td> <td> 서울특별시</td> 
+		</tr> 
+		<tr> 
+			<td> <b> 전화번호</b> </td> <td> 010-xxxx-xxxx</td> 
+		</tr> 
+		<tr> 
+			<td> <b> 회계부서</b> </td> <td> D00000</td> 
+		</tr> 
+		</table>
+		<div style="width:150px; height:150px;">
+			<canvas id="canvas" width="150" height="150"style="border: 1px solid #85b8f6"></canvas>
+		</div>
+		
+	</div>
+	<!-- ----------------------------------------------------------전자서명--------------------------------------------------------------- -->
+	<style>
+		
+		#save {
+			margin-top: 30px;
+			margin-left : 600px;
+		}
+
+		#delete {
+			margin-top: 30px;
+			
+		}
+
+		#create_pdf {
+			margin-top: 10px;
+			margin-left : 600px;
+		}
+	</style>
+	
+	<div>
+		<!-- 저장 버튼 -->
+		<button id="save">서명 저장</button>
+		<button id="delete" onclick="delete_canvas()">지우기</button>
+		
+		</div>
+			<script>
+				(function (obj) {
+					obj.init();
+					$(obj.onLoad);
+				})((function () {
+					var canvas = $("#canvas");
+					var div = canvas.parent("div");
+					var ctx = canvas[0].getContext("2d");
+					var drawble = false;
+					function canvasResize() {
+						canvas[0].height = div.height();
+						canvas[0].width = div.width();
+					}
+					// pc에서 서명을 할 경우 사용되는 이벤트
+					function draw(e) {
+						function getPosition() {
+							return {
+								X: e.pageX - canvas[0].offsetLeft,
+								Y: e.pageY - canvas[0].offsetTop
+							}
+						}
+						switch (e.type) {
+							case "mousedown": {
+								drawble = true;
+								ctx.beginPath();
+								ctx.moveTo(getPosition().X, getPosition().Y);
+							}
+								break;
+							case "mousemove": {
+								if (drawble) {
+									ctx.lineTo(getPosition().X, getPosition().Y);
+									ctx.stroke();
+								}
+							}
+								break;
+							case "mouseup":
+							case "mouseout": {
+								drawble = false;
+								ctx.closePath();
+							}
+								break;
+						}
+					}
+					// 스마트 폰에서 서명을 할 경우 사용되는 이벤트
+					function touchdraw(e) {
+						function getPosition() {
+							return {
+								X: e.changedTouches[0].pageX - canvas[0].offsetLeft,
+								Y: e.changedTouches[0].pageY - canvas[0].offsetTop
+							}
+						}
+						switch (e.type) {
+							case "touchstart": {
+								drawble = true;
+								ctx.beginPath();
+								ctx.moveTo(getPosition().X, getPosition().Y);
+							}
+								break;
+							case "touchmove": {
+								if (drawble) {
+									// 스크롤 이동등 이벤트 중지
+									e.preventDefault();
+									ctx.lineTo(getPosition().X, getPosition().Y);
+									ctx.stroke();
+								}
+							}
+								break;
+							case "touchend":
+							case "touchcancel": {
+								drawble = false;
+								ctx.closePath();
+							}
+								break;
+						}
+					}
+					
+					return {
+						init: function () {
+							// 캔버스 사이즈 조절
+							$(window).on("resize", canvasResize);
+							canvas.on("mousedown", draw);
+							canvas.on("mousemove", draw);
+							canvas.on("mouseup", draw);
+							canvas.on("mouseout", draw);
+							// 스마트 폰의 터치 이벤트
+							canvas.on("touchstart", touchdraw);
+							canvas.on("touchend", touchdraw);
+							canvas.on("touchcancel", touchdraw);
+							canvas.on("touchmove", touchdraw);
+							// save 버튼을 누르면 imageupload.php로 base64코드를 보내서 이미지로 변환
+
+
+							$("#save").on("click", function () {
+								// a 태그를 만들어서 다운로드 생성
+								var link = document.createElement('a');
+								// base64데이터 링크 달기
+								link.href = canvas[0].toDataURL("image/png");
+								// 다운로드시 파일명 지정
+								link.download = "Test_Sign.png";		//gif,jpg등으로 파일 변경 가능.
+								// body에 추가
+								document.body.appendChild(link);
+								link.click();
+								document.body.removeChild(link);
+								// 다운로드용 a 태그는 다운로드가 끝나면 삭제
+								form.remove();
+							});
+						},
+						onLoad: function () {
+							// 캔버스 사이즈 조절
+							canvasResize();
+						}
+					};
+				})());
+				//----------------------------테이블 PDF출력---------------------------------------------------------------
+				/* $('#screenshot').click(function () {
+					html2canvas($('#table')[0]).then(function (canvas) {
+						var doc = new jsPDF('p', 'mm', 'a4');
+						var imgData = canvas.toDataURL('image/png');
+						doc.addImage(imgData, 'PNG', 0, 0);
+						doc.save('sample-file.pdf');
+					});
+				});  */
+
+				$('#screenshot').click(function(){
+					html2canvas($('#table')[0]).then(function(canvas){
+						var imgData = canvas.toDataURL('image/png');	//캔버스를 이미지로 변환
+						var imgWidth = 190;								//이미지 가로길이 (mm) / A4 기준 210mm
+						var pageHeight = imgWidth* 1.414;
+						var imgHeight = canvas.height * imgWidth / canvas.width;
+						var heightLeft = imgHeight;
+						var margin = 10;								//출력페이지 여백 설정
+						var doc = new jsPDF('p','mm');
+						var position = 0;
+						//첫 페이지 출력
+						doc.addImage(imgData,'PNG', margin, position, imgWidth, imgHeight);
+						heightLeft -= pageHeight;
+						//한페이지 이상일경우 루프 돌면서 출력
+						while(heightLeft >= 20){
+							position = heightlLeft - imgHeight;
+							doc.addPage();
+							doc.addImage(imgData,'PNG',0,position,imgWidth,imgHeight);
+							heightLeft -= pageHeight;
+						}
+						doc.save('Test_PDF.pdf');	//파일저장
+					});
+				});
+
+
+
+				//--------------------캔버스 지우기 이벤트--------------------------------------------------------------
+				function delete_canvas() {
+					var canvas = document.getElementById("canvas");
+					canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+
+				};
+			</script>
+
+
+			<button id="create_pdf">
+				pdf 생성
+			</button>
+			<script>
+				$('#create_pdf').click(function () {
+					html2canvas($('#table')[0]).then(function (canvas) {
+						
+						var doc = new jsPDF('p', 'mm', 'a4');
+						var imgData = canvas.toDataURL('image/png');
+						doc.addImage(imgData, 'PNG', 0, 0);
+						doc.save('sample-file.pdf');
+					});
+				});	//이미지 파일은 뺴고 해야 가능.
+			</script>
+</body>
+
+
+
+
+</html>
